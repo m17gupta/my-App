@@ -1,11 +1,18 @@
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
-import { Dimensions, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { UserType } from '@/models/User';
+import { registerUser } from '@/redux/userSlice/userThunk';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/redux/store';
 
 const { width } = Dimensions.get('window');
 const isMobile = width < 768;
@@ -13,6 +20,56 @@ const isMobile = width < 768;
 export default function SignUpScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+    const [user, setUser] = useState<UserType | null>({
+        name: '',
+        email: '',
+        password: '',
+        dob: '1990-01-01',
+        role: 'user',
+    } as UserType);
+    const [loading, setLoading] = useState(false);
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+    const [date, setDate] = useState(new Date(1990, 0, 1));
+    const [showPicker, setShowPicker] = useState(false);
+
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        const currentDate = selectedDate || date;
+        setShowPicker(Platform.OS === 'ios');
+        setDate(currentDate);
+
+        // Format date to YYYY-MM-DD
+        const formattedDate = currentDate.toISOString().split('T')[0];
+        setUser(prev => ({ ...prev, dob: formattedDate } as UserType));
+    };
+    const handleRegister = async () => {
+        if (!user?.name || !user?.email || !user?.password || !confirmPassword) {
+            Alert.alert('Error', 'Please fill in all required fields');
+            return;
+        }
+
+        if (user?.password !== confirmPassword) {
+            Alert.alert('Error', 'Passwords do not match');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await dispatch(registerUser(user!)).unwrap();
+            if(response){
+                Alert.alert('Success', 'Account created successfully!');
+               // move tabs
+               router.replace('/(tabs)');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            Alert.alert('Error', 'Something went wrong. Please check your network connection.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <ThemedView style={styles.container}>
@@ -36,7 +93,7 @@ export default function SignUpScreen() {
                             <View style={styles.logoIcon}>
                                 <View style={styles.logoInner} />
                             </View>
-                            <ThemedText style={styles.logoText}>Fauget</ThemedText>
+                            <ThemedText style={styles.logoText}>Manish gupta </ThemedText>
                         </View>
 
                         <ThemedText type="title" style={styles.heroTitle}>
@@ -68,6 +125,8 @@ export default function SignUpScreen() {
                                     placeholder="Enter your name"
                                     placeholderTextColor="rgba(255,255,255,0.4)"
                                     style={styles.input}
+                                    value={user?.name as string}
+                                    onChangeText={(text) => setUser(prev => ({ ...prev, name: text } as UserType))}
                                 />
                             </View>
 
@@ -77,37 +136,108 @@ export default function SignUpScreen() {
                                     placeholder="hello@example.com"
                                     placeholderTextColor="rgba(255,255,255,0.4)"
                                     style={styles.input}
+                                    value={user?.email as string}
+                                    onChangeText={(text) => setUser(prev => ({ ...prev, email: text } as UserType))}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
                                 />
                             </View>
 
                             <View style={styles.formGroup}>
                                 <ThemedText style={styles.label}>PASSWORD</ThemedText>
-                                <TextInput
-                                    placeholder="••••••••••••"
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                    secureTextEntry
-                                    style={styles.input}
-                                />
+                                <View style={styles.inputContainer}>
+                                    <TextInput
+                                        placeholder="••••••••••••"
+                                        placeholderTextColor="rgba(255,255,255,0.4)"
+                                        secureTextEntry={!isPasswordVisible}
+                                        style={styles.flexInput}
+                                        value={user?.password as string}
+                                        onChangeText={(text) => setUser(prev => ({ ...prev, password: text } as UserType))}
+                                    />
+                                    <TouchableOpacity
+                                        onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                                        style={styles.eyeIcon}
+                                    >
+                                        <Ionicons
+                                            name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                                            size={22}
+                                            color="rgba(255,255,255,0.6)"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <ThemedText style={styles.label}>CONFIRM PASSWORD</ThemedText>
+                                <View style={[
+                                    styles.inputContainer,
+                                    confirmPassword !== '' && user?.password !== confirmPassword && styles.inputError
+                                ]}>
+                                    <TextInput
+                                        placeholder="••••••••••••"
+                                        placeholderTextColor="rgba(255,255,255,0.4)"
+                                        secureTextEntry={!isConfirmPasswordVisible}
+                                        style={styles.flexInput}
+                                        value={confirmPassword}
+                                        onChangeText={setConfirmPassword}
+                                    />
+                                    <TouchableOpacity
+                                        onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+                                        style={styles.eyeIcon}
+                                    >
+                                        <Ionicons
+                                            name={isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                                            size={22}
+                                            color="rgba(255,255,255,0.6)"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                                {confirmPassword !== '' && user?.password !== confirmPassword && (
+                                    <ThemedText style={styles.errorText}>Passwords do not match</ThemedText>
+                                )}
                             </View>
 
                             <View style={styles.formGroup}>
                                 <ThemedText style={styles.label}>DATE OF BIRTH</ThemedText>
-                                <TouchableOpacity style={styles.input}>
+                                <TouchableOpacity
+                                    style={styles.input}
+                                    onPress={() => setShowPicker(true)}
+                                >
                                     <View style={styles.datePickerContent}>
-                                        <ThemedText style={styles.dateText}>Select Date</ThemedText>
+                                        <ThemedText style={styles.dateText}>
+                                            {user?.dob as string || 'Select Date'}
+                                        </ThemedText>
                                         <ThemedText style={styles.chevron}>∨</ThemedText>
                                     </View>
                                 </TouchableOpacity>
+
+                                {showPicker && (
+                                    <DateTimePicker
+                                        value={date}
+                                        mode="date"
+                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                        onChange={onDateChange}
+                                        maximumDate={new Date()}
+                                    />
+                                )}
                             </View>
 
-                            <TouchableOpacity style={styles.signUpButton}>
-                                <ThemedText style={styles.signUpText}>Register</ThemedText>
+                            <TouchableOpacity
+                                style={[styles.signUpButton, loading && { opacity: 0.7 }]}
+                                onPress={handleRegister}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <ThemedText style={styles.signUpText}>Register</ThemedText>
+                                )}
                             </TouchableOpacity>
                         </BlurView>
                     </View>
                 </View>
-            </ScrollView>
-        </ThemedView>
+            </ScrollView >
+        </ThemedView >
     );
 }
 
@@ -202,7 +332,9 @@ const styles = StyleSheet.create({
     glassCard: {
         width: '100%',
         maxWidth: 450,
-        padding: 40,
+        paddingHorizontal: 40,
+        paddingTop: 60,
+        paddingBottom: 40,
         borderRadius: 40,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
@@ -210,11 +342,12 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     formTitle: {
-        fontSize: 40,
+        fontSize: 35,
         fontWeight: '900',
         color: '#fff',
         textAlign: 'center',
         marginBottom: 40,
+        lineHeight: 45,
     },
     formGroup: {
         marginBottom: 24,
@@ -225,6 +358,25 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginBottom: 8,
         opacity: 0.8,
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 27,
+        height: 54,
+    },
+    flexInput: {
+        flex: 1,
+        height: '100%',
+        paddingHorizontal: 25,
+        color: '#fff',
+        fontSize: 14,
+    },
+    eyeIcon: {
+        paddingRight: 20,
+        height: '100%',
+        justifyContent: 'center',
     },
     input: {
         width: '100%',
@@ -261,5 +413,16 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    inputError: {
+        borderColor: '#ff4444',
+        borderWidth: 1.5,
+    },
+    errorText: {
+        color: '#ff4444',
+        fontSize: 12,
+        marginTop: 6,
+        marginLeft: 15,
+        fontWeight: '500',
     },
 });

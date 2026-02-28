@@ -1,13 +1,60 @@
-import { Stack } from 'expo-router';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Stack, useRouter } from 'expo-router';
+import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { handleBiometricAuth } from '@/utils/biometrics';
+import { useState } from 'react';
 
 export default function LoginScreen() {
     const colorScheme = useColorScheme() ?? 'light';
+    const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+      const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+      const [loading, setLoading] = useState(false);
+    const onBiometricAuth = async () => {
+        const success = await handleBiometricAuth();
+        if (success) {
+            Alert.alert('Success', 'Authenticated successfully!');
+            router.replace('/(tabs)');
+        }
+    };
+
+    const handleLogin = async() => {
+        if(!email || !password){
+            Alert.alert('Error', 'Please fill in all required fields');
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (response.status === 200) {
+                // move to home screen
+                router.push('/(tabs)');
+            } else {
+                Alert.alert('Error', data.error || 'Failed to create account');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            Alert.alert('Error', 'Something went wrong. Please check your network connection.');
+        } finally {
+            setLoading(false);
+        }
+        
+    };
 
     return (
         <ThemedView style={styles.container}>
@@ -20,6 +67,8 @@ export default function LoginScreen() {
 
                 <View style={styles.inputContainer}>
                     <TextInput
+                    value={email}
+                    onChangeText={setEmail}
                         placeholder="Username"
                         placeholderTextColor="#999"
                         style={[
@@ -32,9 +81,11 @@ export default function LoginScreen() {
                         ]}
                     />
                     <TextInput
+                    value={password}
+                    onChangeText={setPassword}
                         placeholder="Password"
                         placeholderTextColor="#999"
-                        secureTextEntry
+                        secureTextEntry={isPasswordVisible}
                         style={[
                             styles.input,
                             {
@@ -46,12 +97,26 @@ export default function LoginScreen() {
                     />
                 </View>
 
-                <TouchableOpacity style={styles.loginButton} activeOpacity={0.8}>
+                <TouchableOpacity style={styles.loginButton} activeOpacity={0.8}
+                onPress={handleLogin}>
                     <ThemedText style={styles.loginButtonText}>Login</ThemedText>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.facebookButton}>
-                    <ThemedText style={styles.facebookButtonText}>Login With Facebook</ThemedText>
+                <View style={styles.biometricContainer}>
+                    <TouchableOpacity onPress={onBiometricAuth} style={styles.biometricButton}>
+                        <Ionicons
+                            name="finger-print-outline"
+                            size={40}
+                            color={colorScheme === 'dark' ? '#fff' : '#333'}
+                        />
+                        <ThemedText style={styles.biometricText}>Login with Biometrics</ThemedText>
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity style={styles.facebookButton}
+                    onPress={() => router.push('/signup')}
+                >
+                    <ThemedText style={styles.facebookButtonText}>Sign Up</ThemedText>
                 </TouchableOpacity>
             </View>
         </ThemedView>
@@ -102,8 +167,20 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    biometricContainer: {
+        marginTop: 30,
+        alignItems: 'center',
+    },
+    biometricButton: {
+        alignItems: 'center',
+        gap: 8,
+    },
+    biometricText: {
+        fontSize: 14,
+        opacity: 0.7,
+    },
     facebookButton: {
-        marginTop: 20,
+        marginTop: 40,
     },
     facebookButtonText: {
         color: '#3897f1',

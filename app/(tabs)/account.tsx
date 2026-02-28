@@ -1,119 +1,221 @@
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Stack, useRouter } from 'expo-router';
-import { Dimensions, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AppDispatch, RootState } from '@/redux/store';
+import { logout } from '@/redux/userSlice/userSlice';
+import { loginUser } from '@/redux/userSlice/userThunk';
+import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Stack, useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 const isMobile = width < 768;
 
-export default function AccountScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
+const AccountScreen = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const { user, loading, error } = useSelector((state: RootState) => state.user);
+  const colorScheme = useColorScheme() ?? 'light';
 
-  return (
-    <ThemedView style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
+  // State for login form
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-      {/* Background with Overlay */}
-      <View style={StyleSheet.absoluteFill}>
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0a1024' }]} />
-        <LinearGradient
-          colors={['rgba(10, 16, 36, 0.8)', 'rgba(10, 16, 36, 0.95)']}
-          style={StyleSheet.absoluteFill}
-        />
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    const result = await dispatch(loginUser({ email, password }));
+    if (loginUser.fulfilled.match(result)) {
+      // Login successful
+    } else if (loginUser.rejected.match(result)) {
+      Alert.alert('Error', (result.payload as string) || 'Login failed');
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
+  const menuItems = [
+    { icon: 'account-edit-outline', label: 'Edit Profile', onPress: () => { } },
+    { icon: 'history', label: 'Order History', onPress: () => { } },
+    { icon: 'wallet-outline', label: 'Payment Methods', onPress: () => { } },
+    { icon: 'bell-outline', label: 'Notifications', onPress: () => { } },
+    { icon: 'shield-check-outline', label: 'Privacy & Security', onPress: () => { } },
+    { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => { } },
+  ];
+
+  const MenuItem = ({ icon, label, onPress }: { icon: any, label: string, onPress: () => void }) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+      <View style={styles.menuItemLeft}>
+        <Icon name={icon} size={24} color="#555" />
+        <Text style={styles.menuLabel}>{label}</Text>
       </View>
+      <Icon name="chevron-right" size={24} color="#CCC" />
+    </TouchableOpacity>
+  );
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.mainLayout, isMobile && styles.mobileLayout]}>
+  if (!user) {
+    // Show Login UI
+    return (
+      <ThemedView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
 
-          {/* Left Section */}
-          <View style={styles.leftSection}>
-            <View style={styles.logoContainer}>
-              <View style={styles.logoIcon}>
-                <View style={styles.logoInner} />
+        {/* Background with Overlay */}
+        <View style={StyleSheet.absoluteFill}>
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0a1024' }]} />
+          <LinearGradient
+            colors={['rgba(10, 16, 36, 0.8)', 'rgba(10, 16, 36, 0.95)']}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.loginScrollContent}>
+          <View style={[styles.mainLayout, isMobile && styles.mobileLayout]}>
+
+            {/* Left Section */}
+            <View style={styles.leftSection}>
+              <View style={styles.logoContainer}>
+                <View style={styles.logoIcon}>
+                  <View style={styles.logoInner} />
+                </View>
+                <ThemedText style={styles.logoText}>Fauget</ThemedText>
               </View>
-              <ThemedText style={styles.logoText}>Fauget</ThemedText>
-            </View>
 
-            <ThemedText type="title" style={styles.heroTitle}>
-              Create{'\n'}New Account
-            </ThemedText>
-
-            <TouchableOpacity>
-              <ThemedText style={styles.loginLink}>
-                Already Registered? <ThemedText style={styles.loginLinkBold}>Login</ThemedText>
+              <ThemedText type="title" style={styles.heroTitle}>
+                Welcome{'\n'}Back!
               </ThemedText>
-            </TouchableOpacity>
 
-            <View style={styles.divider} />
-
-            <ThemedText style={styles.description}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Aenean semper mauris in magna venenatis suscipit.
-            </ThemedText>
-
-            <TouchableOpacity style={styles.learnMoreButton}>
-              <ThemedText style={styles.learnMoreText}>Learn More</ThemedText>
-            </TouchableOpacity>
-          </View>
-
-          {/* Right Section / Form Card */}
-          <View style={styles.rightSection}>
-            <BlurView intensity={20} tint="light" style={styles.glassCard}>
-              <ThemedText style={styles.formTitle}>Login</ThemedText>
-
-
-
-              <View style={styles.formGroup}>
-                <ThemedText style={styles.label}>UserName</ThemedText>
-                <TextInput
-                  placeholder="hello@reallygreatsite.com"
-                  placeholderTextColor="rgba(255,255,255,0.4)"
-                  style={styles.input}
-                />
-              </View>
-
-              <View style={styles.formGroup}>
-                <ThemedText style={styles.label}>PASSWORD</ThemedText>
-                <TextInput
-                  placeholder="••••••••••••"
-                  placeholderTextColor="rgba(255,255,255,0.4)"
-                  secureTextEntry
-                  style={styles.input}
-                />
-              </View>
-
-
-
-              <TouchableOpacity style={styles.signUpButton}>
-                <ThemedText style={styles.signUpText}>Login</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.secondaryAction}
-                onPress={() => router.push('/signup')}
-              >
-                <ThemedText style={styles.secondaryActionText}>
-                  Don't have an account? <ThemedText style={styles.secondaryActionTextBold}>Sign Up</ThemedText>
+              <TouchableOpacity onPress={() => router.push('/signup')}>
+                <ThemedText style={styles.loginLink}>
+                  New here? <ThemedText style={styles.loginLinkBold}>Sign Up</ThemedText>
                 </ThemedText>
               </TouchableOpacity>
-            </BlurView>
+
+              <View style={styles.divider} />
+
+              <ThemedText style={styles.description}>
+                Experience the best shopping platform.
+                Login to access your personalized dashboard and track your orders.
+              </ThemedText>
+            </View>
+
+            {/* Right Section / Form Card */}
+            <View style={styles.rightSection}>
+              <BlurView intensity={20} tint="light" style={styles.glassCard}>
+                <ThemedText style={styles.formTitle}>Login</ThemedText>
+
+                <View style={styles.formGroup}>
+                  <ThemedText style={styles.label}>EMAIL</ThemedText>
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="hello@reallygreatsite.com"
+                    placeholderTextColor="rgba(255,255,255,0.4)"
+                    style={styles.input}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <ThemedText style={styles.label}>PASSWORD</ThemedText>
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="••••••••••••"
+                    placeholderTextColor="rgba(255,255,255,0.4)"
+                    secureTextEntry
+                    style={styles.input}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.loginButton}
+                  onPress={handleLogin}
+                  disabled={loading}
+                >
+                  <ThemedText style={styles.loginText}>
+                    {loading ? 'Logging in...' : 'Login'}
+                  </ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.secondaryAction}
+                  onPress={() => router.push('/signup')}
+                >
+                  <ThemedText style={styles.secondaryActionText}>
+                    Don't have an account? <ThemedText style={styles.secondaryActionTextBold}>Sign Up</ThemedText>
+                  </ThemedText>
+                </TouchableOpacity>
+              </BlurView>
+            </View>
+          </View>
+        </ScrollView>
+      </ThemedView>
+    );
+  }
+
+  // Show Account UI
+  return (
+    <SafeAreaView style={styles.accountContainer}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <Image source={{ uri: 'https://via.placeholder.com/150' }} style={styles.avatar} />
+          <Text style={styles.userName}>{user.name || 'User'}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{user.role === 'admin' ? 'Admin Member' : 'Premium Member'}</Text>
           </View>
         </View>
+
+        {/* Menu Section */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
+            <MenuItem key={index} {...item} />
+          ))}
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButtonProfile} onPress={handleLogout}>
+          <Icon name="logout" size={20} color="#FF3B30" />
+          <Text style={styles.logoutTextProfile}>Logout</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.versionText}>App Version 1.0.2</Text>
       </ScrollView>
-    </ThemedView>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollContent: {
+  accountContainer: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  loginScrollContent: {
     flexGrow: 1,
     padding: 40,
     justifyContent: 'center',
@@ -192,18 +294,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 60,
   },
-  learnMoreButton: {
-    backgroundColor: '#f6754a',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    alignSelf: 'flex-start',
-  },
-  learnMoreText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   rightSection: {
     flex: 1,
     alignItems: 'center',
@@ -245,21 +335,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
-  datePickerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: '100%',
-  },
-  dateText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 14,
-  },
-  chevron: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 18,
-  },
-  signUpButton: {
+  loginButton: {
     backgroundColor: '#f6754a',
     height: 54,
     borderRadius: 27,
@@ -267,7 +343,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  signUpText: {
+  loginText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
@@ -285,4 +361,93 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
+  // Account Styles
+  header: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    backgroundColor: '#FFF',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
+    borderWidth: 3,
+    borderColor: '#f6754a',
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#777',
+    marginTop: 5,
+  },
+  badge: {
+    backgroundColor: '#FFE8E0',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginTop: 10,
+  },
+  badgeText: {
+    color: '#f6754a',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  menuContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFF',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuLabel: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 15,
+    fontWeight: '500',
+  },
+  logoutButtonProfile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    paddingVertical: 15,
+  },
+  logoutTextProfile: {
+    color: '#FF3B30',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  versionText: {
+    textAlign: 'center',
+    color: '#AAA',
+    fontSize: 12,
+    marginVertical: 20,
+  },
 });
+
+export default AccountScreen;
+
