@@ -1,51 +1,73 @@
-# Welcome to your Expo app 👋
+# Fauget E-commerce App 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A premium React Native application built with **Expo**, featuring a modern UI, robust state management, and real-time backend integration.
 
-## Get started
+## 🚀 Features
 
-1. Install dependencies
+- **Authentication Flow**: Complete login and signup experience with a sleek Fauget-themed design.
+- **Supabase Backend**: Real-time database and authentication via Supabase.
+- **Redux State Management**: Centralized application state using Redux Toolkit (slices and thunks).
+- **Premium UI/UX**: Custom styled components, gradients, and blur effects for a high-end feel.
+- **Biometic Login**: Support for Fingerprint/Face ID authentication.
+- **Account Dashboard**: Personalized user profiles with order history and settings.
+- **Expo Router**: Modern file-based routing for seamless navigation.
 
-   ```bash
-   npm install
-   ```
+## 🛠️ Tech Stack
 
-2. Start the app
+- **Core**: React Native, Expo
+- **State Management**: Redux Toolkit, React-Redux
+- **Backend**: Supabase (Postgres)
+- **Routing**: Expo Router
+- **Icons**: MaterialCommunityIcons, Ionicons
+- **Styling**: React Native StyleSheet, Expo Linear Gradient, Expo Blur
 
-   ```bash
-   npx expo start
-   ```
+## 📋 Getting Started
 
-In the output, you'll find options to open the app in a
+### 1. Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Ensure you have [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 2. Install Dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 3. Environment Setup
 
-## Learn more
+Create a `.env` file in the root directory and add your credentials:
 
-To learn more about developing your project with Expo, look at the following resources:
+```env
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+MONGODB_URI=your_mongodb_uri (optional)
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 4. Run the Development Server
 
-## Join the community
+```bash
+npx expo start
+```
 
-Join our community of developers creating universal apps.
+## 🏗️ Project Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `app/`: Routing and main screens (tabs, login, signup, api).
+- `redux/`: Redux store, user slices, and thunks.
+- `components/`: Reusable UI components.
+- `models/`: TypeScript interfaces and types.
+- `utils/`: Helper functions (biometrics, supabase client).
+- `constants/`: Theme and color configurations.
+
+## 🚢 Deployment
+
+To export and update the app via EAS:
+
+```bash
 npx expo export && npx eas update --branch main
+```
+
+## 📚 Learn More
+
+- [Expo documentation](https://docs.expo.dev/)
+- [Supabase documentation](https://supabase.com/docs)
+- [Redux Toolkit documentation](https://redux-toolkit.js.org/)
