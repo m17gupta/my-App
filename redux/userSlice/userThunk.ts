@@ -6,7 +6,8 @@ export const registerUser = createAsyncThunk(
     'user/register',
     async (userData: UserType, { rejectWithValue }) => {
         try {
-            const response = await fetch('/api/users', {
+            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
+            const response = await fetch(`${baseUrl}/api/users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -32,7 +33,8 @@ export const loginUser = createAsyncThunk(
     'user/login',
     async (credentials: any, { rejectWithValue }) => {
         try {
-            const response = await fetch('/api/users', {
+            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
+            const response = await fetch(`${baseUrl}/api/users`, {
                 method: 'POST', // Assuming same endpoint for login/register as per your users+api.ts
                 headers: {
                     'Content-Type': 'application/json',

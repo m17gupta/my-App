@@ -6,7 +6,8 @@ export const fetchPasswords = createAsyncThunk(
     'passwords/fetchAll',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await fetch('/api/passwords');
+            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
+            const response = await fetch(`${baseUrl}/api/passwords`);
             const data = await response.json();
             if (!response.ok) return rejectWithValue(data.error || 'Failed to fetch passwords');
             return data.passwords;
@@ -21,7 +22,8 @@ export const addPassword = createAsyncThunk(
     'passwords/add',
     async (newPassword: PasswordType, { rejectWithValue }) => {
         try {
-            const response = await fetch('/api/passwords', {
+            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
+            const response = await fetch(`${baseUrl}/api/passwords`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPassword),
@@ -40,7 +42,8 @@ export const updatePassword = createAsyncThunk(
     'passwords/update',
     async (updatedPassword: PasswordType, { rejectWithValue }) => {
         try {
-            const response = await fetch(`/api/passwords/${updatedPassword.id}`, {
+            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
+            const response = await fetch(`${baseUrl}/api/passwords/${updatedPassword.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedPassword),
@@ -59,7 +62,8 @@ export const deletePassword = createAsyncThunk(
     'passwords/delete',
     async (passwordId: string, { rejectWithValue }) => {
         try {
-            const response = await fetch(`/api/passwords/${passwordId}`, {
+            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
+            const response = await fetch(`${baseUrl}/api/passwords/${passwordId}`, {
                 method: 'DELETE',
             });
             const data = await response.json();
