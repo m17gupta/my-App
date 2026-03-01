@@ -2,9 +2,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AppDispatch, RootState } from '@/redux/store';
-import { logout } from '@/redux/userSlice/userSlice';
+import { clearError, logout } from '@/redux/userSlice/userSlice';
 import { loginUser } from '@/redux/userSlice/userThunk';
-import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
+import { MaterialCommunityIcons as Icon, Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
@@ -35,6 +35,7 @@ const AccountScreen = () => {
   // State for login form
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -45,7 +46,7 @@ const AccountScreen = () => {
     if (loginUser.fulfilled.match(result)) {
       // Login successful
     } else if (loginUser.rejected.match(result)) {
-      Alert.alert('Error', (result.payload as string) || 'Login failed');
+      // Error is already in Redux state, will be displayed inline
     }
   };
 
@@ -126,7 +127,10 @@ const AccountScreen = () => {
                   <ThemedText style={styles.label}>EMAIL</ThemedText>
                   <TextInput
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      if (error) dispatch(clearError());
+                    }}
                     placeholder="hello@reallygreatsite.com"
                     placeholderTextColor="rgba(255,255,255,0.4)"
                     style={styles.input}
@@ -137,15 +141,37 @@ const AccountScreen = () => {
 
                 <View style={styles.formGroup}>
                   <ThemedText style={styles.label}>PASSWORD</ThemedText>
-                  <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="••••••••••••"
-                    placeholderTextColor="rgba(255,255,255,0.4)"
-                    secureTextEntry
-                    style={styles.input}
-                  />
+                  <View style={styles.passwordContainer}>
+                    <TextInput
+                      value={password}
+                      onChangeText={(text) => {
+                        setPassword(text);
+                        if (error) dispatch(clearError());
+                      }}
+                      placeholder="••••••••••••"
+                      placeholderTextColor="rgba(255,255,255,0.4)"
+                      secureTextEntry={!isPasswordVisible}
+                      style={styles.passwordInput}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons
+                        name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                        size={22}
+                        color="rgba(255,255,255,0.6)"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
+
+                {error && (
+                  <View style={styles.errorContainer}>
+                    <Icon name="alert-circle-outline" size={16} color="#FF4444" />
+                    <ThemedText style={styles.errorTextInline}>{error}</ThemedText>
+                  </View>
+                )}
 
                 <TouchableOpacity
                   style={styles.loginButton}
@@ -446,6 +472,40 @@ const styles = StyleSheet.create({
     color: '#AAA',
     fontSize: 12,
     marginVertical: 20,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 27,
+    height: 54,
+    overflow: 'hidden',
+  },
+  passwordInput: {
+    flex: 1,
+    height: '100%',
+    paddingHorizontal: 25,
+    color: '#fff',
+    fontSize: 14,
+  },
+  eyeIcon: {
+    paddingRight: 20,
+    height: '100%',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 68, 68, 0.1)',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    gap: 8,
+  },
+  errorTextInline: {
+    color: '#FF4444',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 

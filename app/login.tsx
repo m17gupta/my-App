@@ -12,10 +12,10 @@ import { useState } from 'react';
 export default function LoginScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-      const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-      const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [loading, setLoading] = useState(false);
     const onBiometricAuth = async () => {
         const success = await handleBiometricAuth();
         if (success) {
@@ -24,8 +24,8 @@ export default function LoginScreen() {
         }
     };
 
-    const handleLogin = async() => {
-        if(!email || !password){
+    const handleLogin = async () => {
+        if (!email || !password) {
             Alert.alert('Error', 'Please fill in all required fields');
             return;
         }
@@ -53,7 +53,7 @@ export default function LoginScreen() {
         } finally {
             setLoading(false);
         }
-        
+
     };
 
     return (
@@ -67,8 +67,8 @@ export default function LoginScreen() {
 
                 <View style={styles.inputContainer}>
                     <TextInput
-                    value={email}
-                    onChangeText={setEmail}
+                        value={email}
+                        onChangeText={setEmail}
                         placeholder="Username"
                         placeholderTextColor="#999"
                         style={[
@@ -80,25 +80,39 @@ export default function LoginScreen() {
                             }
                         ]}
                     />
-                    <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                        placeholder="Password"
-                        placeholderTextColor="#999"
-                        secureTextEntry={isPasswordVisible}
-                        style={[
-                            styles.input,
-                            {
-                                color: Colors[colorScheme].text,
-                                borderColor: colorScheme === 'dark' ? '#444' : '#eee',
-                                backgroundColor: colorScheme === 'dark' ? '#222' : '#f9f9f9',
-                            }
-                        ]}
-                    />
+                    <View style={[
+                        styles.passwordContainer,
+                        {
+                            borderColor: colorScheme === 'dark' ? '#444' : '#eee',
+                            backgroundColor: colorScheme === 'dark' ? '#222' : '#f9f9f9',
+                        }
+                    ]}>
+                        <TextInput
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="Password"
+                            placeholderTextColor="#999"
+                            secureTextEntry={!isPasswordVisible}
+                            style={[
+                                styles.flexInput,
+                                { color: Colors[colorScheme].text }
+                            ]}
+                        />
+                        <TouchableOpacity
+                            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                            style={styles.eyeIcon}
+                        >
+                            <Ionicons
+                                name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
+                                size={22}
+                                color={colorScheme === 'dark' ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)"}
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <TouchableOpacity style={styles.loginButton} activeOpacity={0.8}
-                onPress={handleLogin}>
+                    onPress={handleLogin}>
                     <ThemedText style={styles.loginButtonText}>Login</ThemedText>
                 </TouchableOpacity>
 
@@ -152,6 +166,25 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         paddingHorizontal: 15,
         fontSize: 16,
+    },
+    passwordContainer: {
+        width: '100%',
+        height: 50,
+        borderWidth: 1,
+        borderRadius: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    flexInput: {
+        flex: 1,
+        height: '100%',
+        paddingHorizontal: 15,
+        fontSize: 16,
+    },
+    eyeIcon: {
+        paddingRight: 15,
+        height: '100%',
+        justifyContent: 'center',
     },
     loginButton: {
         width: '100%',
