@@ -9,10 +9,11 @@ import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
  */
 const MAPPING: Record<string, any> = {
   'house.fill': 'home',
-  'paperplane.fill': 'email',
-  'message.fill': 'chat',
-  'envelope.fill': 'mail',
+  'paperplane.fill': 'send',
+  'message.fill': 'chat-bubble',
+  'envelope.fill': 'email',
   'person.fill': 'person',
+  'lock.fill': 'lock',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
 };
@@ -28,7 +29,7 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: string; // Relaxed name type to avoid strict SF Symbol checks in TS for now
+  name: string;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;

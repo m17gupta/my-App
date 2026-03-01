@@ -1,26 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { VibrantBackground } from '@/components/VibrantBackground';
 import { UserType } from '@/models/User';
+import { AppDispatch } from '@/redux/store';
 import { registerUser } from '@/redux/userSlice/userThunk';
 import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/redux/store';
 
 const { width } = Dimensions.get('window');
-const isMobile = width < 768;
+const ACCENT_COLOR = '#22E1FF';
 
 export default function SignUpScreen() {
-    const colorScheme = useColorScheme() ?? 'light';
     const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
+    const dispatch = useDispatch<AppDispatch>();
     const [user, setUser] = useState<UserType | null>({
         name: '',
         email: '',
@@ -39,390 +36,239 @@ export default function SignUpScreen() {
         const currentDate = selectedDate || date;
         setShowPicker(Platform.OS === 'ios');
         setDate(currentDate);
-
-        // Format date to YYYY-MM-DD
         const formattedDate = currentDate.toISOString().split('T')[0];
         setUser(prev => ({ ...prev, dob: formattedDate } as UserType));
     };
+
     const handleRegister = async () => {
         if (!user?.name || !user?.email || !user?.password || !confirmPassword) {
             Alert.alert('Error', 'Please fill in all required fields');
             return;
         }
-
         if (user?.password !== confirmPassword) {
             Alert.alert('Error', 'Passwords do not match');
             return;
         }
-
         setLoading(true);
         try {
-            const response = await dispatch(registerUser(user!)).unwrap();
-            if(response){
-                Alert.alert('Success', 'Account created successfully!');
-               // move tabs
-               router.replace('/(tabs)');
-            }
-        } catch (error) {
+            await dispatch(registerUser(user!)).unwrap();
+            Alert.alert('Success', 'Account created successfully!');
+            router.replace('/(tabs)');
+        } catch (error: any) {
             console.error('Registration error:', error);
-            Alert.alert('Error', 'Something went wrong. Please check your network connection.');
+            Alert.alert('Error', error || 'Failed to register');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ThemedView style={styles.container}>
+        <VibrantBackground>
             <Stack.Screen options={{ headerShown: false }} />
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                <Animated.View
+                    entering={FadeInUp.delay(200).duration(1000)}
+                    style={styles.header}
+                >
+                    <ThemedText style={styles.title}>Create Account</ThemedText>
+                    <ThemedText style={styles.subtitle}>Start your journey with us</ThemedText>
+                </Animated.View>
 
-            {/* Background with Overlay */}
-            <View style={StyleSheet.absoluteFill}>
-                <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0a1024' }]} />
-                <LinearGradient
-                    colors={['rgba(10, 16, 36, 0.8)', 'rgba(10, 16, 36, 0.95)']}
-                    style={StyleSheet.absoluteFill}
-                />
-            </View>
-
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={[styles.mainLayout, isMobile && styles.mobileLayout]}>
-
-                    {/* Left Section */}
-                    <View style={styles.leftSection}>
-                        <View style={styles.logoContainer}>
-                            <View style={styles.logoIcon}>
-                                <View style={styles.logoInner} />
-                            </View>
-                            <ThemedText style={styles.logoText}>Manish gupta </ThemedText>
-                        </View>
-
-                        <ThemedText type="title" style={styles.heroTitle}>
-                            Join Us{'\n'}Today
-                        </ThemedText>
-
-                        <TouchableOpacity onPress={() => router.back()}>
-                            <ThemedText style={styles.loginLink}>
-                                Already have an account? <ThemedText style={styles.loginLinkBold}>Login</ThemedText>
-                            </ThemedText>
-                        </TouchableOpacity>
-
-                        <View style={styles.divider} />
-
-                        <ThemedText style={styles.description}>
-                            Join our community and explore endless possibilities.
-                            Start your journey with Fauget today.
-                        </ThemedText>
+                <Animated.View
+                    entering={FadeInDown.delay(400).duration(800)}
+                    style={styles.formContainer}
+                >
+                    <View style={styles.formGroup}>
+                        <ThemedText style={styles.label}>FULL NAME</ThemedText>
+                        <TextInput
+                            placeholder="Jiara Martins"
+                            placeholderTextColor="rgba(255,255,255,0.4)"
+                            style={styles.input}
+                            value={user?.name as string}
+                            onChangeText={(text) => setUser(prev => ({ ...prev, name: text } as UserType))}
+                        />
                     </View>
 
-                    {/* Right Section / Form Card */}
-                    <View style={styles.rightSection}>
-                        <BlurView intensity={20} tint="light" style={styles.glassCard}>
-                            <ThemedText style={styles.formTitle}>Sign Up</ThemedText>
+                    <View style={styles.formGroup}>
+                        <ThemedText style={styles.label}>EMAIL ADDRESS</ThemedText>
+                        <TextInput
+                            placeholder="mail@example.com"
+                            placeholderTextColor="rgba(255,255,255,0.4)"
+                            style={styles.input}
+                            value={user?.email as string}
+                            onChangeText={(text) => setUser(prev => ({ ...prev, email: text } as UserType))}
+                            autoCapitalize="none"
+                            keyboardType="email-address"
+                        />
+                    </View>
 
-                            <View style={styles.formGroup}>
-                                <ThemedText style={styles.label}>FULL NAME</ThemedText>
-                                <TextInput
-                                    placeholder="Enter your name"
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                    style={styles.input}
-                                    value={user?.name as string}
-                                    onChangeText={(text) => setUser(prev => ({ ...prev, name: text } as UserType))}
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <ThemedText style={styles.label}>EMAIL</ThemedText>
-                                <TextInput
-                                    placeholder="hello@example.com"
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                    style={styles.input}
-                                    value={user?.email as string}
-                                    onChangeText={(text) => setUser(prev => ({ ...prev, email: text } as UserType))}
-                                    autoCapitalize="none"
-                                    keyboardType="email-address"
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <ThemedText style={styles.label}>PASSWORD</ThemedText>
-                                <View style={styles.inputContainer}>
-                                    <TextInput
-                                        placeholder="••••••••••••"
-                                        placeholderTextColor="rgba(255,255,255,0.4)"
-                                        secureTextEntry={!isPasswordVisible}
-                                        style={styles.flexInput}
-                                        value={user?.password as string}
-                                        onChangeText={(text) => setUser(prev => ({ ...prev, password: text } as UserType))}
-                                    />
-                                    <TouchableOpacity
-                                        onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                                        style={styles.eyeIcon}
-                                    >
-                                        <Ionicons
-                                            name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                                            size={22}
-                                            color="rgba(255,255,255,0.6)"
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <ThemedText style={styles.label}>CONFIRM PASSWORD</ThemedText>
-                                <View style={[
-                                    styles.inputContainer,
-                                    confirmPassword !== '' && user?.password !== confirmPassword && styles.inputError
-                                ]}>
-                                    <TextInput
-                                        placeholder="••••••••••••"
-                                        placeholderTextColor="rgba(255,255,255,0.4)"
-                                        secureTextEntry={!isConfirmPasswordVisible}
-                                        style={styles.flexInput}
-                                        value={confirmPassword}
-                                        onChangeText={setConfirmPassword}
-                                    />
-                                    <TouchableOpacity
-                                        onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-                                        style={styles.eyeIcon}
-                                    >
-                                        <Ionicons
-                                            name={isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                                            size={22}
-                                            color="rgba(255,255,255,0.6)"
-                                        />
-                                    </TouchableOpacity>
-                                </View>
-                                {confirmPassword !== '' && user?.password !== confirmPassword && (
-                                    <ThemedText style={styles.errorText}>Passwords do not match</ThemedText>
-                                )}
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <ThemedText style={styles.label}>DATE OF BIRTH</ThemedText>
-                                <TouchableOpacity
-                                    style={styles.input}
-                                    onPress={() => setShowPicker(true)}
-                                >
-                                    <View style={styles.datePickerContent}>
-                                        <ThemedText style={styles.dateText}>
-                                            {user?.dob as string || 'Select Date'}
-                                        </ThemedText>
-                                        <ThemedText style={styles.chevron}>∨</ThemedText>
-                                    </View>
-                                </TouchableOpacity>
-
-                                {showPicker && (
-                                    <DateTimePicker
-                                        value={date}
-                                        mode="date"
-                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                        onChange={onDateChange}
-                                        maximumDate={new Date()}
-                                    />
-                                )}
-                            </View>
-
-                            <TouchableOpacity
-                                style={[styles.signUpButton, loading && { opacity: 0.7 }]}
-                                onPress={handleRegister}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#fff" />
-                                ) : (
-                                    <ThemedText style={styles.signUpText}>Register</ThemedText>
-                                )}
+                    <View style={styles.formGroup}><ThemedText style={styles.label}>PASSWORD</ThemedText>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                placeholder="••••••••"
+                                placeholderTextColor="rgba(255,255,255,0.4)"
+                                secureTextEntry={!isPasswordVisible}
+                                style={styles.flexInput}
+                                value={user?.password as string}
+                                onChangeText={(text) => setUser(prev => ({ ...prev, password: text } as UserType))}
+                            />
+                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} style={styles.eyeIcon}>
+                                <Ionicons name={isPasswordVisible ? "eye-outline" : "eye-off-outline"} size={22} color={ACCENT_COLOR} />
                             </TouchableOpacity>
-                        </BlurView>
+                        </View>
                     </View>
-                </View>
-            </ScrollView >
-        </ThemedView >
+
+                    <View style={styles.formGroup}>
+                        <ThemedText style={styles.label}>CONFIRM PASSWORD</ThemedText>
+                        <View style={styles.inputContainer}>
+                            <TextInput
+                                placeholder="••••••••"
+                                placeholderTextColor="rgba(255,255,255,0.4)"
+                                secureTextEntry={!isConfirmPasswordVisible}
+                                style={styles.flexInput}
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                            />
+                            <TouchableOpacity onPress={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)} style={styles.eyeIcon}>
+                                <Ionicons name={isConfirmPasswordVisible ? "eye-outline" : "eye-off-outline"} size={22} color={ACCENT_COLOR} />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <ThemedText style={styles.label}>DATE OF BIRTH</ThemedText>
+                        <TouchableOpacity style={styles.input} onPress={() => setShowPicker(true)}>
+                            <View style={styles.datePickerContent}>
+                                <ThemedText style={styles.dateText}>{user?.dob as string || 'Select Date'}</ThemedText>
+                                <Ionicons name="calendar-outline" size={20} color={ACCENT_COLOR} />
+                            </View>
+                        </TouchableOpacity>
+                        {showPicker && (
+                            <DateTimePicker
+                                value={date} mode="date"
+                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                onChange={onDateChange} maximumDate={new Date()}
+                            />
+                        )}
+                    </View>
+
+                    <TouchableOpacity style={styles.signUpButton} onPress={handleRegister} disabled={loading}>
+                        {loading ? <ActivityIndicator color="#000" /> : <ThemedText style={styles.signUpButtonText}>Create Account</ThemedText>}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.loginButton} onPress={() => router.back()}>
+                        <ThemedText style={styles.loginText}>Already have an account? <ThemedText style={styles.loginTextBold}>Sign In</ThemedText></ThemedText>
+                    </TouchableOpacity>
+                </Animated.View>
+            </ScrollView>
+        </VibrantBackground>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
     scrollContent: {
         flexGrow: 1,
-        padding: 40,
-        justifyContent: 'center',
-    },
-    mainLayout: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 60,
-    },
-    mobileLayout: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 40,
-        padding: 0,
-    },
-    leftSection: {
-        flex: 1,
-        maxWidth: 500,
-    },
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 60,
-        gap: 12,
-    },
-    logoIcon: {
-        width: 32,
-        height: 32,
-        backgroundColor: '#f6754a',
-        borderRadius: 4,
-        transform: [{ skewX: '-15deg' }],
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    logoInner: {
-        width: 16,
-        height: 8,
-        borderLeftWidth: 3,
-        borderBottomWidth: 3,
-        borderColor: '#0a1024',
-        transform: [{ skewX: '15deg' }],
-    },
-    logoText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    heroTitle: {
-        fontSize: 56,
-        lineHeight: 64,
-        fontWeight: '900',
-        color: '#fff',
-        marginBottom: 16,
-    },
-    loginLink: {
-        fontSize: 18,
-        color: '#fff',
-        opacity: 0.9,
-        marginBottom: 40,
-    },
-    loginLinkBold: {
-        fontWeight: 'bold',
-        textDecorationLine: 'underline',
-    },
-    divider: {
-        width: 60,
-        height: 4,
-        backgroundColor: '#fff',
-        marginBottom: 40,
-    },
-    description: {
-        fontSize: 16,
-        color: '#fff',
-        opacity: 0.7,
-        lineHeight: 24,
-        marginBottom: 60,
-    },
-    rightSection: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    glassCard: {
-        width: '100%',
-        maxWidth: 450,
-        paddingHorizontal: 40,
-        paddingTop: 60,
+        paddingHorizontal: 35,
+        paddingTop: 80,
         paddingBottom: 40,
-        borderRadius: 40,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        overflow: 'hidden',
     },
-    formTitle: {
-        fontSize: 35,
-        fontWeight: '900',
-        color: '#fff',
-        textAlign: 'center',
+    header: {
         marginBottom: 40,
-        lineHeight: 45,
+        alignItems: 'center',
+    },
+    title: {
+        fontSize: 38,
+        fontWeight: '900',
+        color: '#FFFFFF',
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 16,
+        color: 'rgba(255,255,255,0.6)',
+        marginTop: 5,
+        textAlign: 'center',
+    },
+    formContainer: {
+        width: '100%',
     },
     formGroup: {
-        marginBottom: 24,
+        marginBottom: 20,
     },
     label: {
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 8,
-        opacity: 0.8,
+        color: ACCENT_COLOR,
+        marginBottom: 10,
+        letterSpacing: 1,
+    },
+    input: {
+        width: '100%',
+        height: 55,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 16,
+        paddingHorizontal: 20,
+        fontSize: 16,
+        color: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        justifyContent: 'center',
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        borderRadius: 27,
-        height: 54,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 16,
+        height: 55,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     flexInput: {
         flex: 1,
         height: '100%',
-        paddingHorizontal: 25,
-        color: '#fff',
-        fontSize: 14,
+        paddingHorizontal: 20,
+        color: '#FFFFFF',
+        fontSize: 16,
     },
     eyeIcon: {
-        paddingRight: 20,
-        height: '100%',
-        justifyContent: 'center',
-    },
-    input: {
-        width: '100%',
-        height: 54,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        borderRadius: 27,
-        paddingHorizontal: 25,
-        color: '#fff',
-        fontSize: 14,
+        paddingRight: 15,
     },
     datePickerContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        height: '100%',
     },
     dateText: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 14,
-    },
-    chevron: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 18,
-    },
-    signUpButton: {
-        backgroundColor: '#f6754a',
-        height: 54,
-        borderRadius: 27,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    signUpText: {
-        color: '#fff',
-        fontWeight: 'bold',
+        color: '#FFFFFF',
         fontSize: 16,
     },
-    inputError: {
-        borderColor: '#ff4444',
-        borderWidth: 1.5,
+    signUpButton: {
+        backgroundColor: '#FFFFFF',
+        height: 55,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10,
+        shadowColor: ACCENT_COLOR,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
     },
-    errorText: {
-        color: '#ff4444',
-        fontSize: 12,
-        marginTop: 6,
-        marginLeft: 15,
-        fontWeight: '500',
+    signUpButtonText: {
+        color: '#000000',
+        fontSize: 17,
+        fontWeight: 'bold',
+    },
+    loginButton: {
+        marginTop: 25,
+        alignItems: 'center',
+    },
+    loginText: {
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.6)',
+    },
+    loginTextBold: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
     },
 });

@@ -5,6 +5,8 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { RootState } from '@/redux/store';
+import { BlurView } from 'expo-blur';
+import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 
 export default function TabLayout() {
@@ -15,16 +17,26 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#345891',
+        tabBarActiveTintColor: '#22E1FF', // Vibrant Blue
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBackground: 'transparent',
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#F0F0F0',
-          height: 60,
-          paddingBottom: 8,
-        }
+          position: 'absolute',
+          borderTopWidth: 0,
+          elevation: 0,
+          backgroundColor: 'transparent',
+          height: 80,
+          paddingBottom: 25,
+        },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={30}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+          />
+        ),
       }}>
       <Tabs.Screen
         name="index"
@@ -33,7 +45,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="house.fill" color={color} />,
         }}
       />
- { user?.role === 'admin' &&    <Tabs.Screen
+      {user?.role === 'admin' && <Tabs.Screen
         name="allUser"
         options={{
           title: 'All User',
@@ -43,8 +55,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="documents"
         options={{
-          title: 'Mail',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="envelope.fill" color={color} />,
+          title: 'Vault',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="lock.fill" color={color} />,
         }}
       />
       <Tabs.Screen

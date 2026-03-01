@@ -72,3 +72,4 @@ npx expo export && npx eas update --branch main
 - [Supabase documentation](https://supabase.com/docs)
 - [Redux Toolkit documentation](https://redux-toolkit.js.org/)
 npx eas build --profile production --platform android
+npx eas build --profile production --platform ios
