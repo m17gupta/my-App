@@ -1,13 +1,12 @@
 import { UserType } from "@/models/User";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-
+const baseUrl = "https://blackened-my-app.vercel.app";
 // Async thunk for user registration
 export const registerUser = createAsyncThunk(
     'user/register',
     async (userData: UserType, { rejectWithValue }) => {
         try {
-            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
-            const response = await fetch(`${baseUrl}/api/users`, {
+            const response = await fetch(`${baseUrl}/api/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -33,8 +32,8 @@ export const loginUser = createAsyncThunk(
     'user/login',
     async (credentials: any, { rejectWithValue }) => {
         try {
-            const baseUrl = process.env.EXPO_PUBLIC_API_URL || '';
-            const response = await fetch(`${baseUrl}/api/users`, {
+           
+            const response = await fetch(`${baseUrl}/api/login`, {
                 method: 'POST', // Assuming same endpoint for login/register as per your users+api.ts
                 headers: {
                     'Content-Type': 'application/json',
