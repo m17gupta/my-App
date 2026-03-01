@@ -1,8 +1,10 @@
+import { AccountContent } from '@/components/AccountContent';
 import PortfolioCard from '@/components/PortfolioCard';
+import { RightDrawer } from '@/components/RightDrawer';
 import SectionHeader from '@/components/SectionHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -15,105 +17,120 @@ const PORTFOLIO_DATA = [
 ];
 
 export default function HomeScreen() {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header / Hero Section */}
-      <LinearGradient colors={['#1C1C1E', '#000000']} style={styles.hero}>
-        <View style={styles.topNav}>
-          <TouchableOpacity style={styles.menuButton}>
-            <Ionicons name="menu-outline" size={28} color="#FFFFFF" />
-          </TouchableOpacity>
-          <View style={styles.profileSummary}>
-            <Text style={styles.userName}>Manish Gupta</Text>
-            <Text style={styles.userHandle}> {"manish.gupta.mech@gmail.com"}</Text>
+    <View style={styles.flexContainer}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header / Hero Section */}
+        <LinearGradient colors={['#1C1C1E', '#000000']} style={styles.hero}>
+          <View style={styles.topNav}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setIsDrawerOpen(true)}
+            >
+              <Ionicons name="menu-outline" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.profileSummary}>
+              <Text style={styles.userName}>Manish Gupta</Text>
+              <Text style={styles.userHandle}> {"manish.gupta.mech@gmail.com"}</Text>
+            </View>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+
+          <View style={styles.heroContent}>
+            <View style={styles.avatarContainer}>
+              <Image
+                source={require('@/assets/images/image.png')}
+                style={styles.avatar}
+              />
+            </View>
+            <View style={styles.heroTextContainer}>
+              <Text style={styles.heroGreeting}>MANISH GUPTA</Text>
+              <Text style={styles.heroTitle}>Creative{"\n"}Developer</Text>
+              <Text style={styles.heroSubtext}>
+                Crafting immersive digital experiences & interfaces.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.heroActions}>
+            <TouchableOpacity style={styles.primaryButton}>
+              <Text style={styles.primaryButtonText}>View Work</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>Let's Collaborate</Text>
+            </TouchableOpacity>
+
+          </View>
+        </LinearGradient>
+
+        {/* Portfolio Section */}
+        <SectionHeader title="Recent Work" />
+
+        <View style={styles.categoryScroll}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryContainer}>
+            {['All', 'Web', 'App', 'Motion'].map((cat, index) => (
+              <TouchableOpacity key={cat} style={[styles.categoryTag, index === 0 && styles.activeCategoryTag]}>
+                <Text style={[styles.categoryTagText, index === 0 && styles.activeCategoryTagText]}>{cat}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
-        <View style={styles.heroContent}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={require('@/assets/images/image.png')}
-              style={styles.avatar}
+        <View style={styles.portfolioGrid}>
+          {PORTFOLIO_DATA.map((item) => (
+            <PortfolioCard
+              key={item.id}
+              title={item.title}
+              category={item.category}
+              image={item.image}
             />
+          ))}
+        </View>
+
+        {/* Services Section */}
+        <View style={styles.servicesSection}>
+          <Text style={styles.servicesHeader}>Services</Text>
+          <View style={styles.servicesList}>
+            {['Web Development', 'Mobile Apps', 'UI/UX Design'].map((service) => (
+              <Text key={service} style={styles.serviceItem}>{service}</Text>
+            ))}
           </View>
-          <View style={styles.heroTextContainer}>
-            <Text style={styles.heroGreeting}>MANISH GUPTA</Text>
-            <Text style={styles.heroTitle}>Creative{"\n"}Developer</Text>
-            <Text style={styles.heroSubtext}>
-              Crafting immersive digital experiences & interfaces.
-            </Text>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.socialIcons}>
+            {['logo-linkedin', 'logo-github', 'basketball', 'logo-twitter'].map((icon) => (
+              <TouchableOpacity key={icon} style={styles.socialButton}>
+                <Ionicons name={icon as any} size={20} color="rgba(255,255,255,0.6)" />
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={styles.footerCopyright}>Manish Gupta • Creative Developer • © 2024</Text>
+          <View style={styles.footerLinks}>
+            {['Home', 'Work', 'About', 'Contact'].map((link) => (
+              <Text key={link} style={styles.footerLinkText}>{link}</Text>
+            ))}
           </View>
         </View>
+      </ScrollView>
 
-        <View style={styles.heroActions}>
-          <TouchableOpacity style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>View Work</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>Let's Collaborate</Text>
-          </TouchableOpacity>
-
-        </View>
-      </LinearGradient>
-
-      {/* Portfolio Section */}
-      <SectionHeader title="Recent Work" />
-
-      <View style={styles.categoryScroll}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryContainer}>
-          {['All', 'Web', 'App', 'Motion'].map((cat, index) => (
-            <TouchableOpacity key={cat} style={[styles.categoryTag, index === 0 && styles.activeCategoryTag]}>
-              <Text style={[styles.categoryTagText, index === 0 && styles.activeCategoryTagText]}>{cat}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.portfolioGrid}>
-        {PORTFOLIO_DATA.map((item) => (
-          <PortfolioCard
-            key={item.id}
-            title={item.title}
-            category={item.category}
-            image={item.image}
-          />
-        ))}
-      </View>
-
-      {/* Services Section */}
-      <View style={styles.servicesSection}>
-        <Text style={styles.servicesHeader}>Services</Text>
-        <View style={styles.servicesList}>
-          {['Web Development', 'Mobile Apps', 'UI/UX Design'].map((service) => (
-            <Text key={service} style={styles.serviceItem}>{service}</Text>
-          ))}
-        </View>
-      </View>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <View style={styles.socialIcons}>
-          {['logo-linkedin', 'logo-github', 'basketball', 'logo-twitter'].map((icon) => (
-            <TouchableOpacity key={icon} style={styles.socialButton}>
-              <Ionicons name={icon as any} size={20} color="rgba(255,255,255,0.6)" />
-            </TouchableOpacity>
-          ))}
-        </View>
-        <Text style={styles.footerCopyright}>Manish Gupta • Creative Developer • © 2024</Text>
-        <View style={styles.footerLinks}>
-          {['Home', 'Work', 'About', 'Contact'].map((link) => (
-            <Text key={link} style={styles.footerLinkText}>{link}</Text>
-          ))}
-        </View>
-      </View>
-    </ScrollView>
+      <RightDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
+        <AccountContent />
+      </RightDrawer>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  flexContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: {
     flex: 1,
     backgroundColor: '#000000',

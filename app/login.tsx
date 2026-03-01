@@ -1,29 +1,33 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
-import { Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Image,
+    SafeAreaView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { handleBiometricAuth } from '@/utils/biometrics';
-import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '@/redux/store';
+import { loginUser } from '@/redux/userSlice/userThunk';
+
+const { width } = Dimensions.get('window');
+
+const ORANGE_COLOR = '#F8B65A';
+const LIGHT_GREY = '#DEDEDE';
 
 export default function LoginScreen() {
-    const colorScheme = useColorScheme() ?? 'light';
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false);
-    const onBiometricAuth = async () => {
-        const success = await handleBiometricAuth();
-        if (success) {
-            Alert.alert('Success', 'Authenticated successfully!');
-            router.replace('/(tabs)');
-        }
-    };
-
+  const dispatch = useDispatch<AppDispatch>();
     const handleLogin = async () => {
         if (!email || !password) {
             Alert.alert('Error', 'Please fill in all required fields');
@@ -31,193 +35,186 @@ export default function LoginScreen() {
         }
         setLoading(true);
         try {
-            const response = await fetch('/api/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            });
+           const response = await dispatch(loginUser({ email, password })).unwrap();
 
             const data = await response.json();
-            console.log(data);
-            if (response.status === 200) {
-                // move to home screen
+            console.log("Login Data", data);
+            if (data.success) {
                 router.push('/(tabs)');
             } else {
-                Alert.alert('Error', data.error || 'Failed to create account');
+                Alert.alert('Error', data.error || 'Failed to login');
             }
         } catch (error) {
-            console.error('Registration error:', error);
+            console.error('Login error:', error);
             Alert.alert('Error', 'Something went wrong. Please check your network connection.');
         } finally {
             setLoading(false);
         }
-
     };
 
     return (
-        <ThemedView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
             <Stack.Screen options={{ headerShown: false }} />
+            <ThemedView style={styles.container}>
 
-            <View style={styles.content}>
-                <ThemedText type="title" style={styles.title}>
-                    Instamobile
-                </ThemedText>
-
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Username"
-                        placeholderTextColor="#999"
-                        style={[
-                            styles.input,
-                            {
-                                color: Colors[colorScheme].text,
-                                borderColor: colorScheme === 'dark' ? '#444' : '#eee',
-                                backgroundColor: colorScheme === 'dark' ? '#222' : '#f9f9f9',
-                            }
-                        ]}
+                {/* Logo Section */}
+                <View style={styles.logoContainer}>
+                    <Image
+                        source={require('@/assets/images/ChatGPT Image Mar 1, 2026, 11_59_19 AM.png')}
+                        style={styles.logoImage}
+                        resizeMode="contain"
                     />
-                    <View style={[
-                        styles.passwordContainer,
-                        {
-                            borderColor: colorScheme === 'dark' ? '#444' : '#eee',
-                            backgroundColor: colorScheme === 'dark' ? '#222' : '#f9f9f9',
-                        }
-                    ]}>
+                </View>
+
+                {/* Login Header */}
+                <View style={styles.header}>
+                    <ThemedText style={styles.title}>Login</ThemedText>
+                </View>
+
+                {/* Form Section */}
+                <View style={styles.form}>
+                    <View style={styles.inputGroup}>
+                        <ThemedText style={styles.label}>NAME</ThemedText>
+                        <TextInput
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="Jiara Martins"
+                            placeholderTextColor="#8E8E93"
+                            autoCapitalize="none"
+                            style={styles.input}
+                        />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <ThemedText style={styles.label}>PASSWORD</ThemedText>
                         <TextInput
                             value={password}
                             onChangeText={setPassword}
-                            placeholder="Password"
-                            placeholderTextColor="#999"
-                            secureTextEntry={!isPasswordVisible}
-                            style={[
-                                styles.flexInput,
-                                { color: Colors[colorScheme].text }
-                            ]}
+                            placeholder="••••••••"
+                            placeholderTextColor="#8E8E93"
+                            secureTextEntry={true}
+                            style={styles.input}
                         />
-                        <TouchableOpacity
-                            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                            style={styles.eyeIcon}
-                        >
-                            <Ionicons
-                                name={isPasswordVisible ? "eye-outline" : "eye-off-outline"}
-                                size={22}
-                                color={colorScheme === 'dark' ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)"}
-                            />
-                        </TouchableOpacity>
                     </View>
-                </View>
 
-                <TouchableOpacity style={styles.loginButton} activeOpacity={0.8}
-                    onPress={handleLogin}>
-                    <ThemedText style={styles.loginButtonText}>Login</ThemedText>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.loginButton}
+                        onPress={handleLogin}
+                        disabled={loading}
+                    >
+                        <ThemedText style={styles.loginButtonText}>
+                            {loading ? 'Logging in...' : 'Log in'}
+                        </ThemedText>
+                    </TouchableOpacity>
 
-                <View style={styles.biometricContainer}>
-                    <TouchableOpacity onPress={onBiometricAuth} style={styles.biometricButton}>
-                        <Ionicons
-                            name="finger-print-outline"
-                            size={40}
-                            color={colorScheme === 'dark' ? '#fff' : '#333'}
-                        />
-                        <ThemedText style={styles.biometricText}>Login with Biometrics</ThemedText>
+                    <TouchableOpacity
+                        style={styles.signupButton}
+                        onPress={() => router.push('/signup')}
+                    >
+                        <ThemedText style={styles.signupText}>
+                            Don't have an account? <ThemedText style={styles.signupTextBold}>Sign Up</ThemedText>
+                        </ThemedText>
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.facebookButton}
-                    onPress={() => router.push('/signup')}
-                >
-                    <ThemedText style={styles.facebookButtonText}>Sign Up</ThemedText>
-                </TouchableOpacity>
-            </View>
-        </ThemedView>
+                {/* Footer Shape */}
+                <View style={styles.footerShapeContainer}>
+                    <View style={styles.footerTrapezoid} />
+                </View>
+
+            </ThemedView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#0a1024',
+    },
     container: {
         flex: 1,
+        paddingHorizontal: 40,
+        backgroundColor: '#0a1024',
         justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
     },
-    content: {
-        width: '100%',
-        maxWidth: 400,
+    logoContainer: {
+        alignItems: 'center',
+        marginBottom: 40,
+    },
+    logoImage: {
+        width: 180,
+        height: 180,
+    },
+    header: {
+        marginBottom: 30,
         alignItems: 'center',
     },
     title: {
-        fontSize: 40,
+        fontSize: 44,
         fontWeight: '900',
-        marginBottom: 40,
+        color: '#FFFFFF',
     },
-    inputContainer: {
+    form: {
         width: '100%',
-        gap: 12,
-        marginBottom: 20,
+    },
+    inputGroup: {
+        marginBottom: 15,
+    },
+    label: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#AAA',
+        marginBottom: 8,
+        marginLeft: 5,
     },
     input: {
         width: '100%',
-        height: 50,
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 15,
+        height: 55,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 15,
+        paddingHorizontal: 20,
         fontSize: 16,
-    },
-    passwordContainer: {
-        width: '100%',
-        height: 50,
-        borderWidth: 1,
-        borderRadius: 5,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    flexInput: {
-        flex: 1,
-        height: '100%',
-        paddingHorizontal: 15,
-        fontSize: 16,
-    },
-    eyeIcon: {
-        paddingRight: 15,
-        height: '100%',
-        justifyContent: 'center',
+        color: '#FFFFFF',
     },
     loginButton: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#3897f1',
+        backgroundColor: ORANGE_COLOR,
+        height: 55,
+        borderRadius: 15,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 5,
-        marginTop: 10,
+        marginTop: 15,
     },
     loginButtonText: {
-        color: '#fff',
+        color: '#000000',
         fontSize: 16,
         fontWeight: 'bold',
     },
-    biometricContainer: {
-        marginTop: 30,
+    signupButton: {
+        marginTop: 20,
         alignItems: 'center',
     },
-    biometricButton: {
-        alignItems: 'center',
-        gap: 8,
-    },
-    biometricText: {
+    signupText: {
         fontSize: 14,
-        opacity: 0.7,
+        color: '#8E8E93',
     },
-    facebookButton: {
-        marginTop: 40,
+    signupTextBold: {
+        color: ORANGE_COLOR,
+        fontWeight: 'bold',
     },
-    facebookButtonText: {
-        color: '#3897f1',
-        fontSize: 15,
-        fontWeight: '600',
+    footerShapeContainer: {
+        position: 'absolute',
+        bottom: -50,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+    },
+    footerTrapezoid: {
+        width: width * 1.2,
+        height: 150,
+        backgroundColor: ORANGE_COLOR,
+        transform: [{ perspective: 100 }, { rotateX: '45deg' }],
+        borderTopLeftRadius: 50,
+        borderTopRightRadius: 50,
     },
 });
