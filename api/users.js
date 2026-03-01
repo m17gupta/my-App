@@ -6,7 +6,7 @@ const supabase = createClient(
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
 );
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // CORS headers
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -82,4 +82,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
-}
+};

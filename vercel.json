@@ -1,5 +1,7 @@
 {
   "public": true,
-  "outputDirectory": "dist/server",
-  "cleanUrls": true
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/dist/server/$1" }
+  ]
 }
